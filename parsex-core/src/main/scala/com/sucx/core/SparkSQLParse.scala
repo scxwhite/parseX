@@ -2,8 +2,8 @@ package com.sucx.core
 
 import java.util.{HashSet => JSet}
 
-import OperatorType
-import TableInfo
+import com.sucx.common.enums.OperatorType
+import com.sucx.common.model.TableInfo
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.catalyst.analysis.UnresolvedRelation
 import org.apache.spark.sql.catalyst.catalog.UnresolvedCatalogRelation
