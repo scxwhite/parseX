@@ -1,22 +1,21 @@
 package org.apache.spark.sql.catalyst.expressions;
 
-import com.tuya.core.SparkSQLParse;
-import com.tuya.core.SqlParse;
-import com.tuya.core.exceptions.SqlParseException;
-import com.tuya.core.model.TableInfo;
+import com.sucx.core.SparkSQLParse;
+import com.sucx.core.SqlParse;
+import com.sucx.common.exceptions.SqlParseException;
+import com.sucx.common.model.Result;
+import com.sucx.core.SqlParseUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import scala.Tuple3;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.HashSet;
 
 /**
  * desc:
@@ -26,82 +25,16 @@ import java.util.HashSet;
  */
 public class parse {
 
-    String sql = "CREATE EXTERNAL TABLE IF NOT EXISTS `bi_dw`.`dws_tools_jira_bug_1d2`(`date_code` int, `user` string, `name` string, `bug` bigint, `major_depid` string, `major_depname` string, `today_new_add` bigint, `today_new_add2` bigint) COMMENT '程龙jira统计' partitioned by(dt string) STORED AS INPUTFORMAT 'org.apache.hadoop.mapred.TextInputFormat' OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'\n" +
-            "LOCATION 'cosn://tuya-big-data-1254153901/bi/bi_dw/dws_tools_jira_bug_1d2' ;INSERT overwrite TABLE bi_dw.dws_tools_jira_bug_1d2 partition(dt=20200308) SELECT 20200308 date_code,\n" +
-            "       *\n" +
-            "  FROM (\n" +
-            "        SELECT assignee AS `user` ,\n" +
-            "               max(name) name ,\n" +
-            "               count(id) AS bug ,\n" +
-            "               max(major_depid) major_depid ,\n" +
-            "               max(major_depname) major_depname,\n" +
-            "               sum(CASE WHEN created >=concat('2020-03-07',' 08:00:00') AND created <= concat('2020-03-08',' 08:00:00') THEN 1 ELSE 0 END) AS today_new_add ,\n" +
-            "               sum(CASE WHEN created >=concat('2020-03-07',' 08:00:00') AND created <= concat('2020-03-08',' 08:00:00') AND yujitime IS NULL THEN 1 ELSE 0 END) AS today_new_add2\n" +
-            "          FROM (\n" +
-            "                SELECT ss.*,\n" +
-            "                       ee.datevalue AS yujitime\n" +
-            "                  FROM (\n" +
-            "                        SELECT bb.id id,\n" +
-            "                               bb.creator creator,\n" +
-            "                               bb.assignee assignee,\n" +
-            "                               bb.reporter reporter,\n" +
-            "                               bb.updated updated,\n" +
-            "                               bb.created created,\n" +
-            "                               bb.resolution resolution,\n" +
-            "                               bb.resolutiondate resolutiondate,\n" +
-            "                               bb.priority priority,\n" +
-            "                               bb.project project,\n" +
-            "                               bb.issuetype issuetype,\n" +
-            "                               bb.issuestatus issuestatus,\n" +
-            "                               aa.pname status,\n" +
-            "                               yy.major_depid,\n" +
-            "                               yy.major_depname,\n" +
-            "                               yy.name\n" +
-            "                          FROM bi_ods.ods_jira_issuestatus aa,\n" +
-            "                               bi_ods.ods_jira_jiraissue bb,\n" +
-            "                               (\n" +
-            "                                SELECT *\n" +
-            "                                  FROM (\n" +
-            "                                        SELECT name,\n" +
-            "                                               email,\n" +
-            "                                               major_depid,\n" +
-            "                                               major_depname,\n" +
-            "                                               row_number() over(PARTITION BY email ORDER BY cast(major_depid AS int) ASC) rk\n" +
-            "                                          FROM bi_dw_temp.tuya_employee\n" +
-            "                                       ) mm\n" +
-            "                                 WHERE rk =1\n" +
-            "                               ) yy\n" +
-            "                         WHERE aa.dt=20200308\n" +
-            "                           AND bb.dt=20200308\n" +
-            "                           AND aa.id = bb.issuestatus\n" +
-            "                           AND bb.assignee=yy.email\n" +
-            "                           AND bb.issuetype = '10004'\n" +
-            "                           AND bb.issuestatus IN ('1', '4')\n" +
-            "                           AND bb.assignee LIKE '%@tuya.com'\n" +
-            "                       ) ss\n" +
-            "                  LEFT JOIN (\n" +
-            "                        SELECT eee.id,\n" +
-            "                               eee.ISSUE,\n" +
-            "                               eee.DATEVALUE\n" +
-            "                          FROM bi_ods.ods_jira_customfieldvalue eee\n" +
-            "                         WHERE CUSTOMFIELD = '10800'\n" +
-            "                           AND eee.dt=20200308\n" +
-            "                       ) AS ee\n" +
-            "                    ON cast(ss.id AS string) = ee.ISSUE\n" +
-            "               ) cc\n" +
-            "         GROUP BY assignee\n" +
-            "       ) dd\n" +
-            " ORDER BY dd.bug DESC,\n" +
-            "          dd.today_new_add DESC;\n";
+    String sql = "";
 
     @Test
     public void parse() throws SqlParseException {
 
         SqlParse sqlParse = new SparkSQLParse();
 
-        Tuple3<HashSet<TableInfo>, HashSet<TableInfo>, HashSet<TableInfo>> tuple3 = sqlParse.parse(sql);
+        Result tuple3 = sqlParse.parse(sql);
 
-        print(tuple3);
+        SqlParseUtil.print(tuple3);
 
     }
 
@@ -166,26 +99,6 @@ public class parse {
     }
 
 
-    private void print(Tuple3<HashSet<TableInfo>, HashSet<TableInfo>, HashSet<TableInfo>> tuple3) {
-
-        System.out.println("输入表有:");
-        for (TableInfo table : tuple3._1()) {
-            System.out.print(table);
-        }
-
-        System.out.println("输出表有:");
-
-        for (TableInfo table : tuple3._2()) {
-            System.out.print(table);
-        }
-
-        System.out.println("临时表:");
-
-        for (TableInfo table : tuple3._3()) {
-            System.out.print(table);
-        }
-    }
-
     @Test
     public void split() {
         String sql = "abc; abcd;\n absc;\tabcde ';';   abcde\';\";";
@@ -234,7 +147,6 @@ public class parse {
 
     @Test
     public void prestoTest() {
-
 
 
     }

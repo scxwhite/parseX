@@ -4,18 +4,31 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>parsex</artifactId>
-        <groupId>com.tuya</groupId>
+        <groupId>com.sucx.bigdata</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>parsex-client</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <name>parsex-client</name>
 
 
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/org.datanucleus/javax.jdo -->
+
         <dependency>
             <groupId>org.datanucleus</groupId>
             <artifactId>javax.jdo</artifactId>
@@ -68,7 +81,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.tuya</groupId>
+            <groupId>com.sucx.bigdata</groupId>
             <artifactId>parsex-core</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
